@@ -1,0 +1,91 @@
+---
+title: "fml assignment 1"
+author: "ravi"
+date: "2024-02-05"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(ggplot2)
+
+
+```
+
+# Download
+
+Source file is from kaggle(https://www.kaggle.com/datasets/sanjanchaudhari/population-dataset)
+
+# Import
+
+```{r}
+data <- read.csv("C:/Users/santo/OneDrive/Desktop/archive/2015.csv")
+head(data)
+```
+
+```{r}
+summary(data$Happiness.Score)
+```
+
+# Descriptive Statistics for quantitative variables
+
+```{r}
+
+data_des = c("Happiness.Score", "Family", "Generosity")
+summary_quant = summary(data[data_des])
+print(summary_quant)
+
+```
+
+# Descriptive Statistics for categorical variables
+
+```{r}
+data_cat = c("Region", "Country")
+summary_cat = sapply(data[data_cat], table)
+print(summary_cat)
+
+
+```
+
+# Transformation
+
+```{r}
+transformation = data$Life_Expectancy/1000
+
+```
+
+# Bar Plot for Count of Countries by Region
+
+```{r}
+
+bar_plot_region_count <- ggplot(data, aes(x = Region, fill = Region)) +
+  geom_bar(stat = "count") +
+  labs(title = "Bar Plot of Count of Countries by Region",
+       x = "Region",
+       y = "Count of Countries") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_fill_brewer(palette = "Set3")  
+
+print(bar_plot_region_count)
+
+```
+
+# Scatter Plot for Happiness.Score vs. Life_Expectancy
+
+```{r}
+ggplot(data, aes(x = data$Health..Life.Expectancy., y = Happiness.Score)) +
+  geom_point(color = "darkorange") +
+  labs(title = "Scatter Plot of Happiness Score vs. Life Expectancy",
+       x = "Life Expectancy",
+       y = "Happiness Score")
+
+
+
+```
+
+
