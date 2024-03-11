@@ -1,0 +1,159 @@
+---
+title: "FML_Assignment_3"
+author: "Ravi Gadde"
+date: "2024-03-11"
+output:
+  word_document: default
+  html_document: default
+---
+```{r}
+#Calling the libraries caret,dplyr,ggplot2,lattice,knitr,rmarkdown,e1071
+library(caret)
+```
+```{r}
+library(dplyr)
+```
+```{r}
+library(ggplot2) 
+library(lattice) 
+library(knitr) 
+library(rmarkdown) 
+library(e1071)
+```
+```{r}
+#Reading The Data Set UniversalBank
+library(readr)
+UniB_data <- read.csv("C:/Users/ravi/Downloads/UniversalBank.csv") 
+View(UniB_data)
+```
+#In this section, the data is extracted from the CSV file, some fields (such ID and Zip Code) are 
+ removed, variable factors are created, and numerical variables are converted to categorical 
+data types. 
+
+```{r}
+b1 <- UniB_data %>% select(Age, Experience, Income, Family, CCAvg, Education, Mortgage, Personal.Loan , Securities.Account, CD.Account, Online, CreditCard)
+b1$CreditCard <- as.factor(b1$CreditCard)
+b1$Personal.Loan <- as.factor((b1$Personal.Loan)) 
+b1$Online <- as.factor(b1$Online)
+
+```
+```{r}
+#Here, Separation of data is done, 60% Training and Test Data 40%
+select.variable <- c(8,11,12) 
+set.seed(23)
+Train.Index_1 = createDataPartition(b1$Personal.Loan, p=0.60, list=0) 
+Train_UBData = b1[Train.Index_1,select.variable]
+Val.Data = b1[-Train.Index_1,select.variable]
+
+```
+#A. Create a pivot table for the training data with Online as a column variable, CC as a row variable,and 
+Loan as a secondary row variable. The values inside the table should convey the count. In R use functions 
+melt() and cast(), or function table(). In Python, use panda dataframe methods melt() and pivot().
+```{r}
+# Demonstrating the pivot table with credit card and Personal LOAN as both rows,
+# and online transaction as a column.
+attach(Train_UBData)
+ftable(CreditCard,Personal.Loan,Online) #ftable is defined as "function table"
+```
+```{r}
+detach(Train_UBData)
+```
+#B. Consider the task of classifying a customer who owns a bank credit card and is actively using online 
+banking services. Looking at the pivot table, what is the probability that this customer will accept the loan 
+offer? [This is the probability of loan acceptance (Loan = 1) conditional on having a bank credit card (CC 
+= 1) and being an active user of online banking services (Online = 1)]. 
+```{r}
+# Methodology: - To determine the conditional probability that Loan=1,
+#given Online=1 and CC=1, we add 53 (Loan=1 from ftable) to 497 (Loan=0 from ftable), 
+#which is 550. 53/550 = 0.096363 or 9.64% of the time.
+prop.table(ftable(Train_UBData$CreditCard,Train_UBData$Online,Train_UBData$Personal.Loan),margin=1)
+```
+#Question C. Create two separate pivot tables for the training data. #One will have Loan (rows) as a 
+function of Online (columns) #and the other will have Loan (rows) as a function of CC. 
+
+```{r}
+#Generating 2 pivot tables with 'Online' and 'Credit Card' #as columns in both and considering 'Personal Loan' as row 
+attach(Train_UBData)
+ftable(Personal.Loan,Online)
+
+```
+```{r}
+ftable(Personal.Loan,CreditCard) 
+```
+```{r}
+detach(Train_UBData)
+```
+#Question D. Compute the following quantities [P(A | B) means “the probability ofA given B”]: 
+```{r}
+prop.table(ftable(Train_UBData$Personal.Loan,Train_UBData$CreditCard),margin=)
+```
+```{r}
+prop.table(ftable(Train_UBData$Personal.Loan,Train_UBData$Online),margin=1)
+```
+
+#Probability of credit card holders among the loan acceptors i.e P(CC = 1 | Loan = 1) 
+i) 92/288 = 0.3194 or 31.94% 
+#Probability of customers with online transactions and are also loan acceptors 
+ii) 167/288 = 0.5798 or 57.986% 
+#The proportion of loan acceptors 
+iii) P(loans= 1) -> 288/3000 = 0.096 or 9.6% 
+###P(CC = 1 | Loan = 0)
+iv) 812/2712 = 0.2994 or 29.94% 
+##P(Online = 1 | Loan = 0)
+V) 1624/2712 = 0.5988 or 59.88% 
+#P(Loan = 0)
+Vi) total loans=0 from table(2712) divided by total from table (3000) = 0.904 or 90.4% 
+#Question E. Use the quantities computed above to compute the naive Bayes probability P(Loan = 1 | CC 
+= 1,Online = 1).
+(0.3194 x 0.5798 x 0.096)/[(0.3194 x 0.5798 x 0.096)+(0.2994 x 0.5988 x 0.904)] = 0.0988505642823 or 9.885%
+#Question F. Compare this value with the one obtained from the pivot table in (B). #Which is a more 
+accurate estimate? 
+#There is little variance between 0.096363, or 9.64%, and 0.0988505642823, or 9.885%. The pivot 
+Table value is the more accurate estimated value since it does not depend on the probabilities being 
+independent. While E determines the likelihood of each count, B makes a simple computation based 
+on a count. As a result, B is more specific whereas E is broader. 
+#Question G. Which of the entries in this table are needed for computing P(Loan = 1 | CC = 1, Online = 
+1)? #Run naive Bayes on the data. Examine the model output on training data, #and find the entry that 
+corresponds to P(Loan = 1 | CC = 1, Online = 1). #Compare this to the number you obtained in (E). 
+```{r}
+# Displaying the training dataset
+UniB_data.sb <- naiveBayes(Personal.Loan ~ ., data = Train_UBData) 
+UniB_data.sb
+```
+
+#While the pivot table in step B can be used to quickly compute P(LOAN=1|CC=1,Online=1) without 
+utilizing the Naive Bayes model, the two tables constructed in step C make it straightforward and 
+ apparent how we are computing P(LOAN=1|CC=1,Online=1) using the Naive Bayes model.
+ 
+ #But compared to the manually calculated probability in step E, the model forecast is less accurate. 
+The Naive Bayes model predicts probability in the same way as earlier techniques. The likelihood 
+ that is anticipated is more like the one from step B. This is made possible by the fact that step E 
+ necessitates human computation, which raises the risk of error when rounding fractions and producing 
+an estimate. 
+
+```{r}
+#Generating confusion matrix for Training Data
+prediction_class <- predict(UniB_data.sb, newdata = Train_UBData) 
+confusionMatrix(prediction_class, Train_UBData$Personal.Loan)
+```
+
+#This model's great sensitivity was counterbalanced by its low precision. The model projected that all values 
+would be 0 in the absence of all real values from the reference. Because there are so many 0s in the data, the 
+model would still yield an accuracy of 90.4% even if it missed every value of 1. 
+
+```{r}
+prediction.probab <- predict(UniB_data.sb, newdata=Val.Data, type="raw") 
+prediction_class <- predict(UniB_data.sb, newdata = Val.Data) 
+confusionMatrix(prediction_class, Val.Data$Personal.Loan)
+```
+#Visualizing the model graphically and comparing the best results.
+```{r}
+library(pROC) 
+```
+```{r}
+roc(Val.Data$Personal.Loan,prediction.probab[,1]) 
+
+```
+```{r}
+plot.roc(Val.Data$Personal.Loan,prediction.probab[,1],print.thres="best")
+```
